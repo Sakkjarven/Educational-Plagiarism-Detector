@@ -12,10 +12,10 @@ public class TextProcessor : ITextProcessor
     {
         // Английские
         "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
-        "of", "with", "by", "is", "are", "was", "were", "be", "been", "being",
+        "of", "with", "by", "is", "are", "was", "were", "be", "been", "being","this",
         
         // Русские
-        "и", "в", "во", "не", "что", "он", "на", "я", "с", "со", "как", "а",
+        "это","и", "в", "во", "не", "что", "он", "на", "я", "с", "со", "как", "а",
         "то", "все", "она", "так", "его", "но", "да", "ты", "к", "у", "же",
         "вы", "за", "бы", "по", "только", "ее", "мне", "было", "вот", "от",
         "меня", "еще", "нет", "о", "из", "ему", "теперь", "когда", "даже",
@@ -56,8 +56,9 @@ public class TextProcessor : ITextProcessor
         // Удаляем email
         text = Regex.Replace(text, @"\S+@\S+\.\S+", " ");
 
-        // Оставляем только буквы, цифры и пробелы
-        text = Regex.Replace(text, @"[^\w\sа-яёА-ЯЁ\-]", " ");
+        // Оставляем только буквы (включая кириллицу), цифры, пробелы и дефисы
+        // Используем Unicode категории для поддержки кириллицы
+        text = Regex.Replace(text, @"[^\p{L}\p{N}\s\-]", " ");
 
         // Заменяем множественные пробелы на один
         text = Regex.Replace(text, @"\s+", " ").Trim();
@@ -70,9 +71,10 @@ public class TextProcessor : ITextProcessor
         if (string.IsNullOrWhiteSpace(text))
             return Array.Empty<string>();
 
-        // Разделяем по пробелам и не-буквенным символам
-        var tokens = Regex.Split(text, @"\W+")
-            .Where(t => !string.IsNullOrWhiteSpace(t) && t.Length > 1)
+        // Разделяем по не-буквенным символам (включая Unicode буквы)
+        var tokens = Regex.Split(text, @"[^\p{L}]+", RegexOptions.Compiled)
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Where(t => t.Length > 1) // Фильтруем слишком короткие токены
             .ToArray();
 
         return tokens;
@@ -80,8 +82,9 @@ public class TextProcessor : ITextProcessor
 
     public string[] Lemmatize(string[] tokens)
     {
-        // Упрощенная лемматизация - удаляем окончания
-        // В реальном проекте нужно использовать библиотеку типа Yandex.Lemmatizer
+        if (tokens == null || tokens.Length == 0)
+            return Array.Empty<string>();
+
         var lemmas = new List<string>();
 
         foreach (var token in tokens)
@@ -90,28 +93,11 @@ public class TextProcessor : ITextProcessor
             if (_stopWords.Contains(token))
                 continue;
 
-            // Упрощенная лемматизация для русского и английского
-            var lemma = GetSimpleLemma(token);
-            lemmas.Add(lemma);
+            // Упрощенная лемматизация - оставляем как есть
+            // В реальном проекте нужно использовать библиотеку
+            lemmas.Add(token);
         }
 
         return lemmas.ToArray();
-    }
-
-    private string GetSimpleLemma(string word)
-    {
-        // Очень упрощенная лемматизация
-        // В реальном проекте нужна полноценная библиотека
-
-        // Для демонстрации просто возвращаем слово без изменений
-        // Можно добавить простые правила:
-        if (word.EndsWith("ing", StringComparison.OrdinalIgnoreCase))
-            return word[..^3];
-        if (word.EndsWith("ed", StringComparison.OrdinalIgnoreCase))
-            return word[..^2];
-        if (word.EndsWith("s", StringComparison.OrdinalIgnoreCase) && word.Length > 3)
-            return word[..^1];
-
-        return word;
     }
 }

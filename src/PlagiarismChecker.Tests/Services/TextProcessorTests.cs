@@ -74,8 +74,9 @@ public class TextProcessorTests
         var tokens = _processor.Tokenize(text);
 
         // Assert
-        tokens.Should().HaveCount(6);
-        tokens.Should().ContainInOrder("hello", "world", "this", "is", "a", "test");
+        // —лово "a" будет отфильтровано, так как оно короче 2 символов
+        tokens.Should().HaveCount(5);
+        tokens.Should().ContainInOrder("hello", "world", "this", "is", "test");
     }
 
     [Fact]
@@ -103,6 +104,7 @@ public class TextProcessorTests
 
         // Assert
         // —лова "this", "is", "a" должны быть удалены как стоп-слова
+        // "test" и "document" остаютс€ без изменений
         lemmas.Should().HaveCount(2);
         lemmas.Should().ContainInOrder("test", "document");
     }
@@ -143,6 +145,36 @@ public class TextProcessorTests
         var result = _processor.PreprocessText(text);
 
         // Assert
+        // ”дал€ютс€ знаки препинани€, но сохран€ютс€ кириллические и латинские символы
         result.Should().Be("hello мир это test на двух languages");
+    }
+
+    [Fact]
+    public void Tokenize_ShouldHandleCyrillic()
+    {
+        // Arrange
+        var text = "привет мир это тест";
+
+        // Act
+        var tokens = _processor.Tokenize(text);
+
+        // Assert
+        tokens.Should().HaveCount(4);
+        tokens.Should().ContainInOrder("привет", "мир", "это", "тест");
+    }
+
+    [Fact]
+    public void Lemmatize_ShouldHandleCyrillicStopWords()
+    {
+        // Arrange
+        var tokens = new[] { "это", "и", "тест", "дл€", "проверки" };
+
+        // Act
+        var lemmas = _processor.Lemmatize(tokens);
+
+        // Assert
+        // "это", "и", "дл€" - стоп-слова, должны быть удалены
+        lemmas.Should().HaveCount(2);
+        lemmas.Should().ContainInOrder("тест", "проверки");
     }
 }
