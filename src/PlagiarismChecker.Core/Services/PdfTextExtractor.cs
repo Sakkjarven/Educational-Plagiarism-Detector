@@ -1,5 +1,9 @@
-﻿// Пока создаем заглушку для PDF. Для реального проекта нужно добавить библиотеку типа iTextSharp
-using PlagiarismChecker.Core.Services;
+﻿using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
+using System.Reflection.PortableExecutable;
+using System.Text;
+
+namespace PlagiarismChecker.Core.Services.FileTextExtractors;
 
 public class PdfTextExtractor : IFileTextExtractor
 {
@@ -9,10 +13,29 @@ public class PdfTextExtractor : IFileTextExtractor
         return extension == ".pdf";
     }
 
-    public Task<string> ExtractTextAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<string> ExtractTextAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        // Временная заглушка - возвращаем сообщение об ошибке
-        throw new NotSupportedException(
-            "PDF extraction is not implemented. Please convert PDF to text first or install iTextSharp package.");
+        try
+        {
+            return await Task.Run(() =>
+            {
+                var text = new StringBuilder();
+
+                using (var reader = new PdfReader(filePath))
+                {
+                    for (int page = 1; page <= reader.NumberOfPages; page++)
+                    {
+                        var pageText = PdfTextExtractor.GetTextFromPage(reader, page);
+                        text.AppendLine(pageText);
+                    }
+                }
+
+                return text.ToString();
+            }, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to extract text from PDF: {filePath}", ex);
+        }
     }
 }
