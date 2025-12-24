@@ -38,4 +38,4 @@ public class PdfTextExtractor : IFileTextExtractor
             throw new InvalidOperationException($"Failed to extract text from PDF: {filePath}", ex);
         }
     }
-}
+}   

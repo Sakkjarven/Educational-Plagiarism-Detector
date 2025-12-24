@@ -100,4 +100,4 @@ jobs:
           fi
         else
           echo "⚠️ Analysis completed but no results file was generated" >> $GITHUB_STEP_SUMMARY
-        fi
+        fi  
