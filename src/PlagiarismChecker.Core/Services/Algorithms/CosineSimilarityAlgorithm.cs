@@ -5,7 +5,8 @@ namespace PlagiarismChecker.Core.Services.Algorithms;
 public class CosineSimilarityAlgorithm : ISimilarityAlgorithm
 {
     private readonly ITextProcessor _textProcessor;
-    private TfIdfVectorizer? _vectorizer;
+    // Удаляем неиспользуемое поле
+    // private TfIdfVectorizer? _vectorizer; // УДАЛИТЬ ЭТУ СТРОКУ
 
     public SimilarityAlgorithmType AlgorithmType => SimilarityAlgorithmType.CosineSimilarity;
 

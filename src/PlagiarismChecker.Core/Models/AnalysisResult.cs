@@ -10,7 +10,7 @@ public class AnalysisResult
     public List<ComparisonResult> ComparisonResults { get; init; }
 
     [JsonIgnore]
-    public Dictionary<(Guid, Guid), ComparisonResult> ComparisonMatrix { get; private set; }
+    public Dictionary<(Guid, Guid), ComparisonResult> ComparisonMatrix { get; private set; } = new(); // Инициализируем
 
     public AnalysisResult(List<Document> documents, List<ComparisonResult> comparisonResults)
     {
