@@ -22,13 +22,13 @@
 - Spectre.Console (для визуализации)
 
 ## 📁 Структура проекта
-EducationalPlagiarismDetector/
-├── src/
-│ ├── PlagiarismChecker.Core/ # Основная логика
-│ ├── PlagiarismChecker.Cli/ # Консольное приложение
-│ └── PlagiarismChecker.Tests/ # Юнит-тесты
-├── .github/workflows/ # CI/CD конфигурации
-└── sample-data/ # Примеры документов
+EducationalPlagiarismDetector/\
+├── src/\
+│ ├── PlagiarismChecker.Core/ # Основная логика\
+│ ├── PlagiarismChecker.Cli/ # Консольное приложение\
+│ └── PlagiarismChecker.Tests/ # Юнит-тесты\
+├── .github/workflows/ # CI/CD конфигурации\
+└── sample-data/ # Примеры документов\
 
 ## 📝 Лицензия
 MIT
