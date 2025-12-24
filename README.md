@@ -56,18 +56,18 @@ N-Gram Matching - Сравнение N-грамм с коэффициентом 
 - GitHub Actions
 - Spectre.Console (для визуализации)
 
-## 📁 Структура проекта
-EducationalPlagiarismDetector/
-├── src/
-│   ├── PlagiarismChecker.Core/     # Основная логика
-│   ├── PlagiarismChecker.Cli/      # Консольное приложение
-│   └── PlagiarismChecker.Tests/    # Юнит-тесты
-├── .github/workflows/              # CI/CD конфигурации
-│   ├── dotnet-build-test.yml       # Основной workflow
-│   └── scheduled-analysis.yml      # Креативный workflow
-├── sample-data/                    # Примеры документов
-├── scripts/                        # Вспомогательные скрипты
-└── docs/                           # Документация
+## 📁 Структура проекта\
+EducationalPlagiarismDetector/\
+├── src/\
+│   ├── PlagiarismChecker.Core/     # Основная логика\
+│   ├── PlagiarismChecker.Cli/      # Консольное приложение\
+│   └── PlagiarismChecker.Tests/    # Юнит-тесты\
+├── .github/workflows/              # CI/CD конфигурации\
+│   ├── dotnet-build-test.yml       # Основной workflow\
+│   └── scheduled-analysis.yml      # Креативный workflow\
+├── sample-data/                    # Примеры документов\
+├── scripts/                        # Вспомогательные скрипты\
+└── docs/                           # Документация\
 ## 🔧 CI/CD Pipeline
 Проект использует два workflow:
 
