@@ -11,5 +11,10 @@ public interface IPlagiarismDetectionService
 
     AnalysisResult AnalyzeDocuments(
         IEnumerable<Document> documents,
+        IEnumerable<SimilarityAlgorithmType> algorithms,
+        IProgress<double>? progress = null);
+
+    AnalysisResult AnalyzeDocuments(
+        IEnumerable<Document> documents,
         IEnumerable<SimilarityAlgorithmType> algorithms);
 }

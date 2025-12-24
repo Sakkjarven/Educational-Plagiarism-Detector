@@ -25,7 +25,7 @@ public static class DependencyInjection
         // Регистрируем экстракторы текста
         services.AddSingleton<IFileTextExtractor, PlainTextExtractor>();
         services.AddSingleton<IFileTextExtractor, PdfTextExtractor>();
-
+        services.AddScoped<IExportService, ExportService>();
         return services;
     }
 }
