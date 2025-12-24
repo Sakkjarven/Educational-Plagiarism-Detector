@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using PlagiarismChecker.Core;
 using PlagiarismChecker.Core.Models;
 using PlagiarismChecker.Core.Services;
+using Spectre.Console;
 using System.Text.Json;
 
 namespace PlagiarismChecker.Cli;
@@ -180,11 +181,27 @@ class Program
 
     private static void DisplayResults(AnalysisResult result, CommandLineOptions options)
     {
-        Console.WriteLine("\n=== ANALYSIS RESULTS ===\n");
-        Console.WriteLine($"Analysis ID: {result.Id}");
-        Console.WriteLine($"Timestamp: {result.Timestamp:yyyy-MM-dd HH:mm:ss}");
-        Console.WriteLine($"Documents analyzed: {result.Documents.Count}");
-        Console.WriteLine($"Comparisons made: {result.ComparisonResults.Count}\n");
+        AnsiConsole.WriteLine();
+
+        // Заголовок
+        var rule = new Rule("[bold blue]ANALYSIS RESULTS[/]");
+        rule.Style = Style.Parse("blue dim");
+        AnsiConsole.Write(rule);
+
+        // Основная информация
+        var infoTable = new Table();
+        infoTable.Border(TableBorder.None);
+        infoTable.AddColumn("");
+        infoTable.AddColumn("");
+
+        infoTable.AddRow("[bold]Analysis ID:[/]", result.Id.ToString());
+        infoTable.AddRow("[bold]Timestamp:[/]", result.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
+        infoTable.AddRow("[bold]Documents analyzed:[/]", result.Documents.Count.ToString());
+        infoTable.AddRow("[bold]Comparisons made:[/]", result.ComparisonResults.Count.ToString());
+        infoTable.AddRow("[bold]Similarity threshold:[/]", $"{options.Threshold:P0}");
+
+        AnsiConsole.Write(infoTable);
+        AnsiConsole.WriteLine();
 
         // Группируем результаты по парам документов
         var documentPairs = result.ComparisonResults
@@ -203,29 +220,58 @@ class Program
 
         if (documentPairs.Any())
         {
-            Console.WriteLine($"=== POTENTIAL PLAGIARISM DETECTED ===\n");
-            Console.WriteLine($"Threshold: {options.Threshold:P0}\n");
+            var rule2 = new Rule("[bold red]⚠️ POTENTIAL PLAGIARISM DETECTED[/]");
+            rule2.Style = Style.Parse("red");
+            AnsiConsole.Write(rule2);
+
+            // Создаем таблицу с результатами
+            var resultsTable = new Table();
+            resultsTable.Border(TableBorder.Rounded);
+            resultsTable.AddColumn("[bold]Document A[/]");
+            resultsTable.AddColumn("[bold]Document B[/]");
+            resultsTable.AddColumn(new TableColumn("[bold]Max Similarity[/]").Centered());
+            resultsTable.AddColumn(new TableColumn("[bold]Avg Similarity[/]").Centered());
+            resultsTable.AddColumn("[bold]Algorithms Used[/]");
 
             foreach (var pair in documentPairs)
             {
-                Console.WriteLine($"{pair.DocumentAName} vs {pair.DocumentBName}");
-                Console.WriteLine($"  Maximum similarity: {pair.MaxSimilarity:P2}");
-                Console.WriteLine($"  Average similarity: {pair.AvgSimilarity:P2}");
+                var maxSimilarityFormatted = pair.MaxSimilarity >= options.Threshold * 1.5
+                    ? $"[red on white bold]{pair.MaxSimilarity:P0}[/]"
+                    : pair.MaxSimilarity >= options.Threshold
+                        ? $"[red]{pair.MaxSimilarity:P0}[/]"
+                        : $"[orange3]{pair.MaxSimilarity:P0}[/]";
 
-                foreach (var algo in pair.Algorithms)
-                {
-                    Console.WriteLine($"    {algo.Key}: {algo.Value:P2}");
-                }
-                Console.WriteLine();
+                var avgSimilarityFormatted = pair.AvgSimilarity >= options.Threshold
+                    ? $"[red]{pair.AvgSimilarity:P0}[/]"
+                    : $"[orange3]{pair.AvgSimilarity:P0}[/]";
+
+                var algorithms = string.Join(", ", pair.Algorithms
+                    .Select(a => $"{a.Key}: {a.Value:P0}"));
+
+                resultsTable.AddRow(
+                    pair.DocumentAName,
+                    pair.DocumentBName,
+                    maxSimilarityFormatted,
+                    avgSimilarityFormatted,
+                    algorithms);
             }
+
+            AnsiConsole.Write(resultsTable);
+            AnsiConsole.WriteLine();
         }
         else
         {
-            Console.WriteLine($"No potential plagiarism detected (threshold: {options.Threshold:P0}).");
+            var panel = new Panel("[green]✅ No potential plagiarism detected[/]")
+            {
+                Border = BoxBorder.Rounded,
+                Padding = new Padding(2, 1, 2, 1)
+            };
+            AnsiConsole.Write(panel);
+            AnsiConsole.WriteLine();
         }
 
         // Выводим матрицу схожести если нужно
-        if (options.ShowMatrix && result.Documents.Count <= 10)
+        if (options.ShowMatrix && result.Documents.Count <= 15)
         {
             DisplaySimilarityMatrix(result, options.Threshold);
         }
@@ -233,57 +279,81 @@ class Program
 
     private static void DisplaySimilarityMatrix(AnalysisResult result, double threshold)
     {
-        Console.WriteLine("\n=== SIMILARITY MATRIX (Maximum similarity) ===\n");
+        AnsiConsole.WriteLine();
+        var panel = new Panel("[bold blue]SIMILARITY MATRIX (Maximum similarity)[/]")
+        {
+            Border = BoxBorder.Rounded,
+            Padding = new Padding(1, 1, 1, 1)
+        };
+        AnsiConsole.Write(panel);
 
         var docs = result.Documents.OrderBy(d => d.Name).ToList();
 
-        // Заголовок
-        Console.Write($"{"",-20}");
+        // Создаем таблицу
+        var table = new Table();
+        table.Border(TableBorder.Rounded);
+        table.AddColumn(new TableColumn("[bold]Document[/]").LeftAligned());
+
+        // Добавляем заголовки
         foreach (var doc in docs)
         {
-            var displayName = doc.Name.Length > 10
-                ? doc.Name[..7] + "..."
+            var displayName = doc.Name.Length > 15
+                ? doc.Name[..12] + "..."
                 : doc.Name;
-            Console.Write($"{displayName,-12}");
+            table.AddColumn(new TableColumn($"[bold]{displayName}[/]").Centered());
         }
-        Console.WriteLine();
 
-        // Данные
+        // Добавляем данные
         for (int i = 0; i < docs.Count; i++)
         {
             var docA = docs[i];
             var displayName = docA.Name.Length > 20
                 ? docA.Name[..17] + "..."
                 : docA.Name;
-            Console.Write($"{displayName,-20}");
+
+            var rowData = new List<string> { $"[bold]{displayName}[/]" };
 
             for (int j = 0; j < docs.Count; j++)
             {
                 if (i == j)
                 {
-                    Console.Write($"{"--",-12}");
+                    rowData.Add("[grey]--[/]");
                 }
                 else
                 {
                     var similarity = result.GetSimilarity(docA.Id, docs[j].Id);
+                    var similarityPercent = similarity.ToString("P0");
 
                     // Цветовое кодирование
+                    string styledText;
                     if (similarity >= threshold)
-                        Console.ForegroundColor = ConsoleColor.Red;
-                    else if (similarity >= threshold / 2)
-                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        styledText = $"[red on white bold]{similarityPercent}[/]";
+                    else if (similarity >= threshold * 0.5)
+                        styledText = $"[orange3]{similarityPercent}[/]";
+                    else if (similarity >= threshold * 0.3)
+                        styledText = $"[yellow]{similarityPercent}[/]";
                     else
-                        Console.ForegroundColor = ConsoleColor.Green;
+                        styledText = $"[green]{similarityPercent}[/]";
 
-                    Console.Write($"{similarity:P0,-12}");
-                    Console.ResetColor();
+                    rowData.Add(styledText);
                 }
             }
-            Console.WriteLine();
+
+            table.AddRow(rowData.ToArray());
         }
 
-        Console.ResetColor();
-        Console.WriteLine("\nColor key: Green < 50% threshold, Yellow: 50-99%, Red: >= threshold");
+        AnsiConsole.Write(table);
+
+        // Легенда
+        var legend = new Table();
+        legend.Border(TableBorder.None);
+        legend.AddColumn("Color Legend");
+        legend.AddRow("[green]Green:[/] Low similarity (< 30% threshold)");
+        legend.AddRow("[yellow]Yellow:[/] Moderate similarity (30-50% threshold)");
+        legend.AddRow("[orange3]Orange:[/] High similarity (50-99% threshold)");
+        legend.AddRow("[red on white]Red/White:[/] Potential plagiarism (≥ threshold)");
+
+        AnsiConsole.Write(legend);
     }
 
     private static async Task SaveResultsToJsonAsync(
