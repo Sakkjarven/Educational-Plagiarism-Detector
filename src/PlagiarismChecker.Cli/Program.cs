@@ -55,16 +55,28 @@ class Program
 
             var result = detectionService.AnalyzeDocuments(documentList, algorithms);
 
-            // Выводим результаты
-            DisplayResults(result, options);
+            // Создаем прогресс-бар
+            AnsiConsole.Progress()
+                .Columns(new ProgressColumn[]
+                {
+        new TaskDescriptionColumn(),
+        new ProgressBarColumn(),
+        new PercentageColumn(),
+        new SpinnerColumn()
+                })
+                .Start(ctx =>
+                {
+                    var progressTask = ctx.AddTask("[green]Analyzing documents...[/]");
+                    progressTask.IsIndeterminate = false;
 
-            // Сохраняем результаты в JSON если нужно
-            if (!string.IsNullOrEmpty(options.OutputFile))
-            {
-                await SaveResultsToJsonAsync(result, options.OutputFile, _logger);
-            }
+                    var progress = new Progress<double>(value =>
+                    {
+                        progressTask.Value = value * 100;
+                    });
 
-            _logger.LogInformation("Analysis completed successfully!");
+                    result = detectionService.AnalyzeDocuments(documentList, algorithms, progress);
+                    progressTask.Value = 100;
+                });
         }
         catch (Exception ex)
         {
@@ -79,6 +91,7 @@ class Program
                 disposable.Dispose();
             }
         }
+
     }
 
     private static void ConfigureServices()
@@ -144,6 +157,14 @@ class Program
 
                 case "--no-matrix":
                     options.ShowMatrix = false;
+                    break;
+                case "--format":
+                    if (i + 1 < args.Length)
+                        options.ExportFormat = args[++i];
+                    break;
+
+                case "--no-progress":
+                    options.ShowProgress = false;
                     break;
             }
         }
@@ -425,7 +446,9 @@ public class CommandLineOptions
     public string InputDirectory { get; set; } = "sample-data";
     public List<string> AlgorithmTypes { get; set; } = new() { "all" };
     public string? OutputFile { get; set; }
+    public string? ExportFormat { get; set; } = "json"; // json или csv
     public double Threshold { get; set; } = 0.3;
     public bool ShowHelp { get; set; }
     public bool ShowMatrix { get; set; } = true;
+    public bool ShowProgress { get; set; } = true;
 }
