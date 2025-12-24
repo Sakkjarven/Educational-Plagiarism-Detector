@@ -1,4 +1,5 @@
-﻿namespace PlagiarismChecker.Core.Services;
+﻿using System;
+namespace PlagiarismChecker.Core.Services;
 
 public interface IFileTextExtractor
 {
