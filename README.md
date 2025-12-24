@@ -1,7 +1,5 @@
 ﻿# Educational Plagiarism Detector
 ! ONLY IN ENGLISH YET !
-![.NET Build and Test](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/workflows/.NET%20Build%20and%20Test/badge.svg)
-![Scheduled Analysis](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/workflows/Scheduled%20Plagiarism%20Analysis/badge.svg)
 ## 📖 Описание
 Система для автоматического обнаружения плагиата в студенческих работах с использованием методов NLP и сравнения текстов.
 
@@ -56,18 +54,18 @@ N-Gram Matching - Сравнение N-грамм с коэффициентом 
 - GitHub Actions
 - Spectre.Console (для визуализации)
 
-## 📁 Структура проекта
-EducationalPlagiarismDetector/
-├── src/
-│   ├── PlagiarismChecker.Core/     # Основная логика
-│   ├── PlagiarismChecker.Cli/      # Консольное приложение
-│   └── PlagiarismChecker.Tests/    # Юнит-тесты
-├── .github/workflows/              # CI/CD конфигурации
-│   ├── dotnet-build-test.yml       # Основной workflow
-│   └── scheduled-analysis.yml      # Креативный workflow
-├── sample-data/                    # Примеры документов
-├── scripts/                        # Вспомогательные скрипты
-└── docs/                           # Документация
+## 📁 Структура проекта\
+EducationalPlagiarismDetector/\
+├── src/\
+│   ├── PlagiarismChecker.Core/     # Основная логика\
+│   ├── PlagiarismChecker.Cli/      # Консольное приложение\
+│   └── PlagiarismChecker.Tests/    # Юнит-тесты\
+├── .github/workflows/              # CI/CD конфигурации\
+│   ├── dotnet-build-test.yml       # Основной workflow\
+│   └── scheduled-analysis.yml      # Креативный workflow\
+├── sample-data/                    # Примеры документов\
+├── scripts/                        # Вспомогательные скрипты\
+└── docs/                           # Документация\
 ## 🔧 CI/CD Pipeline
 Проект использует два workflow:
 
