@@ -31,11 +31,11 @@ public class CosineSimilarityAlgorithm : ISimilarityAlgorithm
         var lemmasA = _textProcessor.Lemmatize(tokensA);
         var lemmasB = _textProcessor.Lemmatize(tokensB);
 
-        // Если оба документа пустые после обработки
         if (lemmasA.Length == 0 && lemmasB.Length == 0)
-            return 1.0; // Оба пустые - считаем идентичными
+            return 0.0;
+
         if (lemmasA.Length == 0 || lemmasB.Length == 0)
-            return 0.0; // Один пустой - нет схожести
+            return 0.0;
 
         // Создаем TF-IDF векторизатор
         var vectorizer = new TfIdfVectorizer();

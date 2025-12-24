@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using PlagiarismChecker.Core.Models;
+﻿using PlagiarismChecker.Core.Models;
 
 namespace PlagiarismChecker.Core.Services.Algorithms;
 

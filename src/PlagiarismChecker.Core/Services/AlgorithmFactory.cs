@@ -3,7 +3,7 @@ using PlagiarismChecker.Core.Services.Algorithms;
 
 namespace PlagiarismChecker.Core.Services;
 
-public class AlgorithmFactory
+public class AlgorithmFactory : IAlgorithmFactory
 {
     private readonly ITextProcessor _textProcessor;
 

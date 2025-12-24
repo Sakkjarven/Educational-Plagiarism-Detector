@@ -1,5 +1,4 @@
 ﻿using PlagiarismChecker.Core.Models;
-using System.Linq;
 
 namespace PlagiarismChecker.Core.Services.Algorithms;
 

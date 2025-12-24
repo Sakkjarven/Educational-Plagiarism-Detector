@@ -9,6 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- ЭТО ВАЖНО: ссылка на Core проект -->
 		<ProjectReference Include="..\PlagiarismChecker.Core\PlagiarismChecker.Core.csproj" />
 	</ItemGroup>
 

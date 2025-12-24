@@ -1,5 +1,5 @@
 ﻿# Educational Plagiarism Detector
-
+#! ONLY IN ENGLISH YET !
 ## 📖 Описание
 Система для автоматического обнаружения плагиата в студенческих работах с использованием методов NLP и сравнения текстов.
 
@@ -23,9 +23,9 @@
 
 ## 📁 Структура проекта
 EducationalPlagiarismDetector/
--├── src/
--│ ├── PlagiarismChecker.Core/ # Основная логика
--│ ├── PlagiarismChecker.Cli/ # Консольное приложение
+├── src/
+│ ├── PlagiarismChecker.Core/ # Основная логика
+│ ├── PlagiarismChecker.Cli/ # Консольное приложение
 │ └── PlagiarismChecker.Tests/ # Юнит-тесты
 ├── .github/workflows/ # CI/CD конфигурации
 └── sample-data/ # Примеры документов

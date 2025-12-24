@@ -1,6 +1,4 @@
-﻿using MathNet.Numerics.LinearAlgebra;
-using System.Collections.Immutable;
-using System.Numerics;
+﻿using System.Collections.Immutable;
 
 namespace PlagiarismChecker.Core.Services;
 

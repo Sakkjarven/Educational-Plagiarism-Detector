@@ -9,8 +9,8 @@ namespace PlagiarismChecker.Cli;
 
 class Program
 {
-    private static IServiceProvider _serviceProvider;
-    private static ILogger<Program> _logger;
+    private static IServiceProvider? _serviceProvider;
+    private static ILogger<Program>? _logger;
 
     static async Task Main(string[] args)
     {
@@ -20,7 +20,7 @@ class Program
             ConfigureServices();
 
             // Получаем логгер
-            _logger = _serviceProvider.GetRequiredService<ILogger<Program>>();
+            _logger = _serviceProvider!.GetRequiredService<ILogger<Program>>();
 
             _logger.LogInformation("=== Educational Plagiarism Detector ===");
             _logger.LogInformation("Starting analysis...");
@@ -50,7 +50,7 @@ class Program
 
             // Анализируем документы
             var detectionService = _serviceProvider.GetRequiredService<IPlagiarismDetectionService>();
-            var algorithms = GetAlgorithms(options.AlgorithmTypes);
+            var algorithms = GetAlgorithms(options.AlgorithmTypes, _logger);
 
             var result = detectionService.AnalyzeDocuments(documentList, algorithms);
 
@@ -60,7 +60,7 @@ class Program
             // Сохраняем результаты в JSON если нужно
             if (!string.IsNullOrEmpty(options.OutputFile))
             {
-                await SaveResultsToJsonAsync(result, options.OutputFile);
+                await SaveResultsToJsonAsync(result, options.OutputFile, _logger);
             }
 
             _logger.LogInformation("Analysis completed successfully!");
@@ -85,7 +85,7 @@ class Program
         var services = new ServiceCollection();
 
         // Добавляем логирование
-        object value = services.AddLogging(configure =>
+        services.AddLogging(configure =>
         {
             configure.AddConsole();
             configure.SetMinimumLevel(LogLevel.Information);
@@ -94,7 +94,6 @@ class Program
         // Добавляем основные сервисы
         services.AddPlagiarismCheckerCore();
 
-        // Исправление: используем метод расширения BuildServiceProvider из Microsoft.Extensions.DependencyInjection
         _serviceProvider = services.BuildServiceProvider();
     }
 
@@ -151,7 +150,9 @@ class Program
         return options;
     }
 
-    private static IEnumerable<SimilarityAlgorithmType> GetAlgorithms(List<string> algorithmTypes)
+    private static IEnumerable<SimilarityAlgorithmType> GetAlgorithms(
+        List<string> algorithmTypes,
+        ILogger<Program>? logger = null)
     {
         if (algorithmTypes.Contains("all", StringComparer.OrdinalIgnoreCase))
         {
@@ -168,7 +169,7 @@ class Program
             }
             else
             {
-                _logger?.LogWarning("Unknown algorithm type: {AlgorithmType}. Skipping.", type);
+                logger?.LogWarning("Unknown algorithm type: {AlgorithmType}. Skipping.", type);
             }
         }
 
@@ -285,7 +286,10 @@ class Program
         Console.WriteLine("\nColor key: Green < 50% threshold, Yellow: 50-99%, Red: >= threshold");
     }
 
-    private static async Task SaveResultsToJsonAsync(AnalysisResult result, string outputFile)
+    private static async Task SaveResultsToJsonAsync(
+        AnalysisResult result,
+        string outputFile,
+        ILogger<Program>? logger = null)
     {
         try
         {
@@ -306,12 +310,12 @@ class Program
             await File.WriteAllTextAsync(outputFile, json);
 
             var fullPath = Path.GetFullPath(outputFile);
-            _logger.LogInformation("Results saved to: {OutputFile}", fullPath);
+            logger?.LogInformation("Results saved to: {OutputFile}", fullPath);
             Console.WriteLine($"\nResults saved to: {fullPath}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save results to JSON file");
+            logger?.LogError(ex, "Failed to save results to JSON file");
             Console.WriteLine($"Warning: Could not save results to {outputFile}: {ex.Message}");
         }
     }
