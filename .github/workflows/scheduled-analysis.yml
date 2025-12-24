@@ -1,0 +1,103 @@
+﻿name: Scheduled Analysis
+
+on:
+  # Запуск каждый день в 8:00 UTC
+  schedule:
+    - cron: '0 8 * * *'
+  
+  # Ручной запуск
+  workflow_dispatch:
+    inputs:
+      threshold:
+        description: 'Similarity threshold'
+        required: false
+        default: '0.3'
+        type: string
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  analyze-sample-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Create sample data if missing
+      run: |
+        mkdir -p sample-data
+        if [ ! -f "sample-data/document1.txt" ]; then
+          echo "Creating sample data..."
+          echo "Machine learning is a branch of artificial intelligence." > sample-data/document1.txt
+          echo "Artificial intelligence includes machine learning techniques." > sample-data/document2.txt
+          echo "Computer science is the study of computation and information." > sample-data/document3.txt
+          echo "Created 3 sample documents"
+        else
+          echo "Sample data already exists"
+        fi
+        ls -la sample-data/
+        
+    - name: Run plagiarism analysis
+      run: |
+        echo "Running analysis with threshold: ${{ inputs.threshold || '0.3' }}"
+        cd src/PlagiarismChecker.Cli
+        dotnet run --no-build --configuration Release -- \
+          -i "../../sample-data" \
+          -t "${{ inputs.threshold || '0.3' }}" \
+          -o "../../analysis-results-${{ github.run_id }}.json" \
+          --no-progress \
+          --no-matrix || echo "Analysis completed"
+          
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: analysis-results-${{ github.run_id }}
+        path: |
+          analysis-results-*.json
+          results_*.json
+        retention-days: 7
+        
+    - name: Create summary
+      if: always()
+      run: |
+        echo "## 📊 Scheduled Analysis Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Threshold:** ${{ inputs.threshold || '0.3' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Проверяем, есть ли результаты
+        if ls analysis-results-*.json 1> /dev/null 2>&1; then
+          RESULTS_FILE=$(ls analysis-results-*.json | head -1)
+          echo "✅ Analysis completed successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "📁 Results file: \`$RESULTS_FILE\`" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Artifact: \`analysis-results-${{ github.run_id }}\`" >> $GITHUB_STEP_SUMMARY
+          
+          # Пытаемся извлечь немного информации из JSON
+          if command -v jq &> /dev/null; then
+            DOC_COUNT=$(jq '.documents | length' "$RESULTS_FILE" 2>/dev/null || echo "N/A")
+            COMP_COUNT=$(jq '.comparisonResults | length' "$RESULTS_FILE" 2>/dev/null || echo "N/A")
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Statistics:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Documents analyzed: $DOC_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Comparisons made: $COMP_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⚠️ Analysis completed but no results file was generated" >> $GITHUB_STEP_SUMMARY
+        fi
