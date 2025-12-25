@@ -1,5 +1,6 @@
 using FluentAssertions;
 using PlagiarismChecker.Core.Services;
+using Xunit;
 
 namespace PlagiarismChecker.Tests.Services;
 
