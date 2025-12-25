@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using PlagiarismChecker.Core.Models;
 using PlagiarismChecker.Core.Services;
-
+using Xunit;
 namespace PlagiarismChecker.Tests.Services;
 
 public class PlagiarismDetectionServiceTests

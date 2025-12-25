@@ -2,6 +2,7 @@
 using Moq;
 using PlagiarismChecker.Core.Services;
 using PlagiarismChecker.Core.Services.Algorithms;
+using Xunit;
 
 namespace PlagiarismChecker.Tests.Services.Algorithms;
 
