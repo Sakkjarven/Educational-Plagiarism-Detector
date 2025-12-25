@@ -53,30 +53,47 @@ class Program
             var detectionService = _serviceProvider.GetRequiredService<IPlagiarismDetectionService>();
             var algorithms = GetAlgorithms(options.AlgorithmTypes, _logger);
 
-            var result = detectionService.AnalyzeDocuments(documentList, algorithms);
+            AnalysisResult result = null!; // Инициализация переменной
 
-            // Создаем прогресс-бар
-            AnsiConsole.Progress()
-                .Columns(new ProgressColumn[]
-                {
-        new TaskDescriptionColumn(),
-        new ProgressBarColumn(),
-        new PercentageColumn(),
-        new SpinnerColumn()
-                })
-                .Start(ctx =>
-                {
-                    var progressTask = ctx.AddTask("[green]Analyzing documents...[/]");
-                    progressTask.IsIndeterminate = false;
-
-                    var progress = new Progress<double>(value =>
+            if (options.ShowProgress)
+            {
+                // Создаем прогресс-бар и запускаем анализ с прогрессом
+                AnsiConsole.Progress()
+                    .Columns(new ProgressColumn[]
                     {
-                        progressTask.Value = value * 100;
-                    });
+                        new TaskDescriptionColumn(),
+                        new ProgressBarColumn(),
+                        new PercentageColumn(),
+                        new SpinnerColumn()
+                    })
+                    .Start(ctx =>
+                    {
+                        var progressTask = ctx.AddTask("[green]Analyzing documents...[/]");
+                        progressTask.IsIndeterminate = false;
 
-                    result = detectionService.AnalyzeDocuments(documentList, algorithms, progress);
-                    progressTask.Value = 100;
-                });
+                        var progress = new Progress<double>(value =>
+                        {
+                            progressTask.Value = value * 100;
+                        });
+
+                        result = detectionService.AnalyzeDocuments(documentList, algorithms, progress);
+                        progressTask.Value = 100;
+                    });
+            }
+            else
+            {
+                // Анализ без прогресса
+                result = detectionService.AnalyzeDocuments(documentList, algorithms);
+            }
+
+            // Отобразить результаты в консоли
+            DisplayResults(result, options);
+
+            // Сохранить результаты в JSON (если указан путь)
+            if (!string.IsNullOrWhiteSpace(options.OutputFile))
+            {
+                await SaveResultsToJsonAsync(result, options.OutputFile!, _logger);
+            }
         }
         catch (Exception ex)
         {
